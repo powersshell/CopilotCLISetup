@@ -1,0 +1,150 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  syntax-validation:
+    name: Syntax Validation
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $errors = $null
+          $tokens = $null
+          $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+            "${{ github.workspace }}/Setup-CopilotCLI.ps1",
+            [ref]$tokens,
+            [ref]$errors
+          )
+
+          if ($errors.Count -gt 0) {
+            Write-Host "❌ Parse errors found:" -ForegroundColor Red
+            $errors | ForEach-Object {
+              Write-Host "  Line $($_.Extent.StartLineNumber): $($_.Message)" -ForegroundColor Red
+            }
+            exit 1
+          }
+
+          Write-Host "✓ No parse errors found" -ForegroundColor Green
+
+      - name: Verify required functions exist
+        shell: pwsh
+        run: |
+          $content = Get-Content -Path "./Setup-CopilotCLI.ps1" -Raw
+          $ast = [System.Management.Automation.Language.Parser]::ParseInput($content, [ref]$null, [ref]$null)
+
+          $requiredFunctions = @(
+            'Write-Banner'
+            'Test-Prerequisites'
+            'Select-InstallMethod'
+            'Install-CopilotCLI'
+            'Start-Authentication'
+            'Install-VSCodeSetup'
+            'Set-CustomInstructions'
+            'Show-Summary'
+          )
+
+          $definedFunctions = $ast.FindAll(
+            { $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] },
+            $true
+          ) | ForEach-Object { $_.Name }
+
+          $missing = $requiredFunctions | Where-Object { $_ -notin $definedFunctions }
+
+          if ($missing) {
+            Write-Host "❌ Missing required functions:" -ForegroundColor Red
+            $missing | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+            exit 1
+          }
+
+          Write-Host "✓ All $($requiredFunctions.Count) required functions are defined" -ForegroundColor Green
+
+  pester-tests:
+    name: Pester Unit Tests
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module -Name Pester -Force -Scope CurrentUser -MinimumVersion 5.0
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          $config = New-PesterConfiguration
+          $config.Run.Path = "./tests"
+          $config.Output.Verbosity = "Detailed"
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = "./test-results.xml"
+          $config.TestResult.OutputFormat = "NUnitXml"
+          Invoke-Pester -Configuration $config
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: ./test-results.xml
+
+  dry-run:
+    name: Non-Interactive Dry Run
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dry run (NonInteractive mode)
+        shell: pwsh
+        run: |
+          # Source the script to load functions without executing main
+          # We test that functions load and basic logic works
+          $scriptContent = Get-Content -Path "./Setup-CopilotCLI.ps1" -Raw
+
+          # Extract and dot-source just the function definitions
+          $tempFile = Join-Path $env:TEMP "test-functions.ps1"
+          @"
+          `$NonInteractive = `$true
+          `$SkipInstructions = `$true
+          `$ErrorActionPreference = 'Stop'
+
+          # Mock Read-Host to prevent blocking
+          function Read-Host { return '' }
+
+          $(($scriptContent -split '#region.*MAIN')[0])
+          "@ | Set-Content -Path $tempFile
+
+          try {
+            . $tempFile
+            Write-Host "✓ All functions loaded successfully" -ForegroundColor Green
+
+            # Test helper functions
+            Write-Banner
+            Write-Host "✓ Write-Banner executed" -ForegroundColor Green
+
+            $result = Test-CommandExists 'pwsh'
+            Write-Host "✓ Test-CommandExists works (pwsh=$result)" -ForegroundColor Green
+
+          } catch {
+            Write-Host "❌ Error: $($_.Exception.Message)" -ForegroundColor Red
+            exit 1
+          } finally {
+            Remove-Item -Path $tempFile -ErrorAction SilentlyContinue
+          }

@@ -1,0 +1,14 @@
+# Test results
+test-results.xml
+
+# Editor
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# PowerShell
+*.ps1xml
