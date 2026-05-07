@@ -115,22 +115,25 @@ jobs:
         shell: pwsh
         run: |
           # Source the script to load functions without executing main
-          # We test that functions load and basic logic works
           $scriptContent = Get-Content -Path "./Setup-CopilotCLI.ps1" -Raw
 
-          # Extract and dot-source just the function definitions
+          # Extract just the function definitions (before MAIN region)
+          $functionsOnly = ($scriptContent -split '#region.*═+\s*\n# MAIN')[0]
+
+          # Remove the script-level param block that can't be dot-sourced
+          $functionsOnly = $functionsOnly -replace '(?s)\[CmdletBinding\(\)\]\s*param\s*\([^)]*\)', ''
+          $functionsOnly = $functionsOnly -replace "Set-StrictMode.*", ''
+          $functionsOnly = $functionsOnly -replace '\$ErrorActionPreference\s*=.*', ''
+
           $tempDir = if ($env:TEMP) { $env:TEMP } elseif ($env:TMPDIR) { $env:TMPDIR } else { '/tmp' }
           $tempFile = Join-Path $tempDir "test-functions.ps1"
-          @"
+
+          $preamble = @"
           `$NonInteractive = `$true
           `$SkipInstructions = `$true
-          `$ErrorActionPreference = 'Stop'
+          "@
 
-          # Mock Read-Host to prevent blocking
-          function Read-Host { return '' }
-
-          $(($scriptContent -split '#region.*MAIN')[0])
-          "@ | Set-Content -Path $tempFile
+          Set-Content -Path $tempFile -Value ($preamble + "`n" + $functionsOnly)
 
           try {
             . $tempFile
