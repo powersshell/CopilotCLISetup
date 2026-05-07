@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="banner.png" alt="Copilot CLI Setup" width="800">
+</p>
+
 # Copilot CLI Setup Script
 
 [![Test](https://github.com/powersshell/CopilotCLISetup/actions/workflows/test.yml/badge.svg)](https://github.com/powersshell/CopilotCLISetup/actions/workflows/test.yml)
