@@ -28,26 +28,30 @@ The script will walk you through everything interactively.
 
 ## What It Does
 
-| Step | Description |
-|------|-------------|
-| **1. Prerequisites** | Checks PowerShell version, internet connectivity, and available install tools |
-| **2. Install Method** | Lets you choose: winget, npm, or direct install script |
-| **3. Installation** | Installs Copilot CLI (or offers to update if already installed) |
-| **4. VS Code** | Optionally installs VS Code and the GitHub Copilot extensions |
-| **5. GitHub CLI** | Optionally installs GitHub CLI (gh) for terminal-based GitHub workflows |
-| **6. Custom Instructions** | Creates template instruction files to personalize Copilot |
-| **7. Authentication** | Launches Copilot CLI for interactive GitHub login (last, so you don't get stuck) |
-| **8. Summary** | Shows what was configured and helpful tips for getting started |
+| Step | Description | Optional? |
+|------|-------------|-----------|
+| **1. Prerequisites** | Checks PowerShell version, internet connectivity, and available install tools | No |
+| **2. Install Method** | Lets you choose: winget, npm, or direct install script | No |
+| **3. Installation** | Installs Copilot CLI (or offers to update if already installed) | No |
+| **4. VS Code Setup** | Installs VS Code and GitHub Copilot extensions (detects built-in extensions in VS Code 2025+) | ✅ Yes |
+| **5. GitHub CLI** | Installs GitHub CLI (`gh`) for terminal-based GitHub workflows | ✅ Yes |
+| **6. Custom Instructions** | Creates template instruction files to personalize Copilot behavior | ✅ Yes |
+| **7. Authentication** | Launches Copilot CLI for interactive GitHub login — placed last so you won't get stuck mid-setup | ✅ Yes |
+| **8. Summary** | Shows what was configured and helpful tips for getting started | No |
+
+> **💡 Why is authentication last?** New users unfamiliar with Copilot CLI might not know to type `/exit` to return to the script. By placing login at the end, all configuration is already complete — if you stay in Copilot CLI, that's fine!
 
 ## Features
 
 - 🚀 **One-command setup** — handles everything from install to configuration
-- 🔄 **Idempotent** — safe to re-run; detects existing installs, skips or updates
+- 🔄 **Idempotent** — safe to re-run; detects existing installs, skips or updates gracefully
 - 🖥️ **Cross-platform** — works on Windows, macOS, and Linux
 - 🎨 **Beautiful CLI** — colored output, ASCII banner, clear progress indicators
 - 🛡️ **Secure** — never stores or asks for passwords/tokens directly
 - 📝 **Custom instructions** — creates starter templates for personalizing Copilot
 - 💻 **VS Code integration** — optionally installs VS Code + Copilot extensions
+- 🐙 **GitHub CLI** — optionally installs `gh` for terminal-based GitHub workflows
+- ⚡ **Smart updates** — detects when you're already on the latest version
 
 ## Prerequisites
 
@@ -86,15 +90,25 @@ You'll also need at least one of these install tools:
 
 ## What Gets Installed / Created
 
-- **Copilot CLI binary** — installed via your chosen package manager
-- **VS Code** — optionally installed with GitHub Copilot extensions
-- **`~/.copilot/copilot-instructions.md`** — user-level custom instructions template (optional)
-- **`.github/copilot-instructions.md`** — repo-level instructions template (optional, only if in a git repo)
+| Component | How | Notes |
+|-----------|-----|-------|
+| **Copilot CLI** | winget / npm / install script | Core install — always runs |
+| **VS Code** | winget / brew / apt | Only if not already installed, user confirms |
+| **GitHub Copilot extensions** | `code --install-extension` | Skipped if already built-in (VS Code 2025+) |
+| **GitHub CLI (`gh`)** | winget / brew / apt | Only if user opts in (defaults to No) |
+| **`~/.copilot/copilot-instructions.md`** | Created from template | User-level Copilot instructions |
+| **`.github/copilot-instructions.md`** | Created from template | Repo-level instructions (only if in a git repo) |
 
 ## Troubleshooting
 
 ### "copilot" command not found after install
 Close and reopen your terminal to refresh PATH, then try `copilot` again.
+
+### "No available upgrade found" during update
+This is normal — it means you're already on the latest version. The script handles this gracefully and continues.
+
+### VS Code extension install shows "already available (built-in)"
+VS Code 2025+ ships GitHub Copilot as a built-in extension. No separate install needed — you're all set!
 
 ### Running on Windows PowerShell 5.1
 The script requires PowerShell 6+. Upgrade with:
@@ -118,9 +132,11 @@ copilot
 
 Helpful first commands inside the CLI:
 - `/help` — see all available commands
+- `/login` — authenticate with GitHub
 - `/model` — choose your AI model
 - `@filename` — reference files in your prompts
 - `#123` — reference GitHub issues/PRs
+- `/exit` — exit back to your terminal
 - `/update` — update to the latest version
 
 ## Development
@@ -139,7 +155,7 @@ Invoke-Pester ./tests -Output Detailed
 
 This repo uses GitHub Actions for:
 - **Testing** — syntax validation, function structure checks, Pester unit tests, and dry-run execution across Windows/macOS/Linux
-- **Security** — PSScriptAnalyzer, TruffleHog secret detection, and CodeQL analysis
+- **Security** — PSScriptAnalyzer linting and TruffleHog secret detection
 
 ## Contributing
 
