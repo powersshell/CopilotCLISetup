@@ -510,9 +510,12 @@ function Install-VSCodeSetup {
                 }
                 else {
                     Write-SubStep "Installing $($ext.Name)..."
-                    & code --install-extension $ext.Id --force 2>&1 | Out-Null
+                    $installOutput = & code --install-extension $ext.Id --force 2>&1
                     if ($LASTEXITCODE -eq 0) {
                         Write-SubStep "$($ext.Name) — installed ✓"
+                    }
+                    elseif ($installOutput -match "built-in extension") {
+                        Write-SubStep "$($ext.Name) — already available (built-in) ✓"
                     }
                     else {
                         Write-Warning2 "Failed to install $($ext.Name). Install manually from the Extensions panel."
