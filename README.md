@@ -31,8 +31,9 @@ The script will walk you through everything interactively.
 | **3. Installation** | Installs Copilot CLI (or offers to update if already installed) |
 | **4. Authentication** | Guides you through the interactive GitHub login flow |
 | **5. VS Code** | Optionally installs VS Code and the GitHub Copilot extensions |
-| **6. Custom Instructions** | Creates template instruction files to personalize Copilot |
-| **7. Summary** | Shows what was configured and helpful tips for getting started |
+| **6. GitHub CLI** | Optionally installs GitHub CLI (gh) for terminal-based GitHub workflows |
+| **7. Custom Instructions** | Creates template instruction files to personalize Copilot |
+| **8. Summary** | Shows what was configured and helpful tips for getting started |
 
 ## Features
 

@@ -142,6 +142,10 @@ Describe 'Script Structure' {
         $script:functions.Name | Should -Contain 'Install-VSCodeSetup'
     }
 
+    It 'Should define Install-GitHubCLI' {
+        $script:functions.Name | Should -Contain 'Install-GitHubCLI'
+    }
+
     It 'Should define Set-CustomInstructions' {
         $script:functions.Name | Should -Contain 'Set-CustomInstructions'
     }

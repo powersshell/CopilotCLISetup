@@ -50,6 +50,7 @@ jobs:
             'Install-CopilotCLI'
             'Start-Authentication'
             'Install-VSCodeSetup'
+            'Install-GitHubCLI'
             'Set-CustomInstructions'
             'Show-Summary'
           )

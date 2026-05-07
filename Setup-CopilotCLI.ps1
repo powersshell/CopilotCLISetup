@@ -534,13 +534,101 @@ function Install-VSCodeSetup {
 #endregion
 
 #region ═══════════════════════════════════════════════════════════════════════════
-# SECTION 6: CUSTOM INSTRUCTIONS
+# SECTION 6: GITHUB CLI
+#region ═══════════════════════════════════════════════════════════════════════════
+
+function Install-GitHubCLI {
+    Write-SectionHeader "GitHub CLI (optional)" 6
+
+    Write-Step "GitHub CLI (gh) enhances your workflow with GitHub from the terminal."
+    Write-SubStep "Create PRs, manage issues, run Actions, and more — all from the command line."
+    Write-Host ""
+
+    # Check if already installed
+    $ghCmd = Get-Command 'gh' -ErrorAction SilentlyContinue
+    if ($ghCmd) {
+        $ghVersion = & gh --version 2>&1 | Select-Object -First 1
+        Write-Success "GitHub CLI is already installed: $ghVersion"
+        return
+    }
+
+    if (-not (Get-UserConfirmation -Prompt "Would you like to install GitHub CLI (gh)?" -Default $false)) {
+        Write-Info "Skipping GitHub CLI installation."
+        Write-Info "You can install it later: https://cli.github.com"
+        return
+    }
+
+    Write-Step "Installing GitHub CLI..."
+    switch ($script:Platform) {
+        'Windows' {
+            if ($script:HasWinget) {
+                & winget install GitHub.cli --accept-source-agreements --accept-package-agreements
+            }
+            else {
+                Write-Warning2 "winget not available. Please install GitHub CLI manually:"
+                Write-Info "  https://cli.github.com"
+                return
+            }
+        }
+        'macOS' {
+            if (Test-CommandExists 'brew') {
+                & brew install gh
+            }
+            else {
+                Write-Warning2 "Homebrew not available. Please install GitHub CLI manually:"
+                Write-Info "  https://cli.github.com"
+                return
+            }
+        }
+        'Linux' {
+            if (Test-CommandExists 'apt') {
+                Write-Info "Installing via apt (may require sudo)..."
+                & sudo apt update
+                & sudo apt install -y gh
+            }
+            elseif (Test-CommandExists 'dnf') {
+                & sudo dnf install -y gh
+            }
+            else {
+                Write-Warning2 "Could not detect a supported package manager."
+                Write-Info "Please install GitHub CLI manually: https://cli.github.com"
+                return
+            }
+        }
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning2 "GitHub CLI installation may have encountered issues."
+        Write-Info "You can install it manually: https://cli.github.com"
+        return
+    }
+
+    # Refresh PATH and verify
+    Refresh-PathEnv
+    Start-Sleep -Seconds 2
+
+    if (Test-CommandExists 'gh') {
+        $ghVersion = & gh --version 2>&1 | Select-Object -First 1
+        Write-Success "GitHub CLI installed: $ghVersion"
+        Write-Host ""
+        Write-Info "To authenticate, run:  gh auth login"
+    }
+    else {
+        Write-Warning2 "GitHub CLI installed but 'gh' not on PATH yet."
+        Write-Info "Restart your terminal, then run:  gh auth login"
+    }
+}
+
+#endregion
+
+#region ═══════════════════════════════════════════════════════════════════════════
+# SECTION 7: CUSTOM INSTRUCTIONS
 #region ═══════════════════════════════════════════════════════════════════════════
 
 function Set-CustomInstructions {
     if ($SkipInstructions) { return }
 
-    Write-SectionHeader "Custom Instructions" 6
+    Write-SectionHeader "Custom Instructions" 7
 
     Write-Step "Custom instructions let you personalize Copilot's behavior."
     Write-Info "Copilot reads instructions from files like copilot-instructions.md"
@@ -638,11 +726,11 @@ function Set-CustomInstructions {
 #endregion
 
 #region ═══════════════════════════════════════════════════════════════════════════
-# SECTION 7: VALIDATION & SUMMARY
+# SECTION 8: VALIDATION & SUMMARY
 #region ═══════════════════════════════════════════════════════════════════════════
 
 function Show-Summary {
-    Write-SectionHeader "Setup Complete!" 7
+    Write-SectionHeader "Setup Complete!" 8
 
     Write-Host ""
     Write-Host "  ╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Green
@@ -669,6 +757,10 @@ function Show-Summary {
 
     if (Test-CommandExists 'code') {
         Write-SubStep "VS Code: installed ✓"
+    }
+
+    if (Test-CommandExists 'gh') {
+        Write-SubStep "GitHub CLI: installed ✓"
     }
 
     Write-Host ""
@@ -708,6 +800,7 @@ try {
     Install-CopilotCLI
     Start-Authentication
     Install-VSCodeSetup
+    Install-GitHubCLI
     Set-CustomInstructions
     Show-Summary
 }
