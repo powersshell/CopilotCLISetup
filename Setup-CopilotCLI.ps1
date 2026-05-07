@@ -342,6 +342,11 @@ function Invoke-InstallCommand {
     }
 
     if ($LASTEXITCODE -ne 0) {
+        # winget returns -1978335189 (0x8A150057) when no update is available — not a real error
+        if ($Update -and ($LASTEXITCODE -eq -1978335189)) {
+            Write-Success "Already on the latest version — no update needed."
+            return
+        }
         Write-Error2 "Installation command failed with exit code $LASTEXITCODE."
         throw "Installation failed. Please check the output above for details."
     }
