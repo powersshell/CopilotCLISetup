@@ -119,7 +119,8 @@ jobs:
           $scriptContent = Get-Content -Path "./Setup-CopilotCLI.ps1" -Raw
 
           # Extract and dot-source just the function definitions
-          $tempFile = Join-Path $env:TEMP "test-functions.ps1"
+          $tempDir = if ($env:TEMP) { $env:TEMP } elseif ($env:TMPDIR) { $env:TMPDIR } else { '/tmp' }
+          $tempFile = Join-Path $tempDir "test-functions.ps1"
           @"
           `$NonInteractive = `$true
           `$SkipInstructions = `$true
