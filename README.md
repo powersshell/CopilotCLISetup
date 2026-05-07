@@ -33,10 +33,10 @@ The script will walk you through everything interactively.
 | **1. Prerequisites** | Checks PowerShell version, internet connectivity, and available install tools |
 | **2. Install Method** | Lets you choose: winget, npm, or direct install script |
 | **3. Installation** | Installs Copilot CLI (or offers to update if already installed) |
-| **4. Authentication** | Guides you through the interactive GitHub login flow |
-| **5. VS Code** | Optionally installs VS Code and the GitHub Copilot extensions |
-| **6. GitHub CLI** | Optionally installs GitHub CLI (gh) for terminal-based GitHub workflows |
-| **7. Custom Instructions** | Creates template instruction files to personalize Copilot |
+| **4. VS Code** | Optionally installs VS Code and the GitHub Copilot extensions |
+| **5. GitHub CLI** | Optionally installs GitHub CLI (gh) for terminal-based GitHub workflows |
+| **6. Custom Instructions** | Creates template instruction files to personalize Copilot |
+| **7. Authentication** | Launches Copilot CLI for interactive GitHub login (last, so you don't get stuck) |
 | **8. Summary** | Shows what was configured and helpful tips for getting started |
 
 ## Features

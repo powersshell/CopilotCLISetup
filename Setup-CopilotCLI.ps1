@@ -350,19 +350,21 @@ function Invoke-InstallCommand {
 #endregion
 
 #region ═══════════════════════════════════════════════════════════════════════════
-# SECTION 4: AUTHENTICATION
+# SECTION 7: AUTHENTICATION (moved to end so user doesn't get stuck in copilot CLI)
 #region ═══════════════════════════════════════════════════════════════════════════
 
 function Start-Authentication {
-    Write-SectionHeader "Authentication" 4
+    Write-SectionHeader "Authentication" 7
 
-    Write-Step "Copilot CLI uses your GitHub account for authentication."
+    Write-Step "Everything is installed! Now let's log you in to Copilot CLI."
     Write-Host ""
-    Write-Info "To log in, you'll need to:"
-    Write-SubStep "1. Launch Copilot CLI by typing: copilot"
-    Write-SubStep "2. Type /login and press Enter"
-    Write-SubStep "3. Follow the browser-based authentication flow"
-    Write-SubStep "4. Return here once you've logged in successfully"
+    Write-Info "Copilot CLI uses your GitHub account for authentication."
+    Write-Info "This is the last step — once you log in, you're all set!"
+    Write-Host ""
+    Write-Info "When Copilot CLI launches:"
+    Write-SubStep "1. Type /login and press Enter"
+    Write-SubStep "2. Follow the browser-based authentication flow"
+    Write-SubStep "3. Type /exit to return here and see your setup summary"
     Write-Host ""
 
     Write-Info "Prerequisites for authentication:"
@@ -403,11 +405,11 @@ function Start-Authentication {
 #endregion
 
 #region ═══════════════════════════════════════════════════════════════════════════
-# SECTION 5: VS CODE SETUP
+# SECTION 4: VS CODE SETUP
 #region ═══════════════════════════════════════════════════════════════════════════
 
 function Install-VSCodeSetup {
-    Write-SectionHeader "VS Code Setup" 5
+    Write-SectionHeader "VS Code Setup" 4
 
     Write-Step "VS Code pairs great with Copilot CLI for a complete AI-powered workflow."
     Write-Host ""
@@ -537,11 +539,11 @@ function Install-VSCodeSetup {
 #endregion
 
 #region ═══════════════════════════════════════════════════════════════════════════
-# SECTION 6: GITHUB CLI
+# SECTION 5: GITHUB CLI
 #region ═══════════════════════════════════════════════════════════════════════════
 
 function Install-GitHubCLI {
-    Write-SectionHeader "GitHub CLI (optional)" 6
+    Write-SectionHeader "GitHub CLI (optional)" 5
 
     Write-Step "GitHub CLI (gh) enhances your workflow with GitHub from the terminal."
     Write-SubStep "Create PRs, manage issues, run Actions, and more — all from the command line."
@@ -625,13 +627,13 @@ function Install-GitHubCLI {
 #endregion
 
 #region ═══════════════════════════════════════════════════════════════════════════
-# SECTION 7: CUSTOM INSTRUCTIONS
+# SECTION 6: CUSTOM INSTRUCTIONS
 #region ═══════════════════════════════════════════════════════════════════════════
 
 function Set-CustomInstructions {
     if ($SkipInstructions) { return }
 
-    Write-SectionHeader "Custom Instructions" 7
+    Write-SectionHeader "Custom Instructions" 6
 
     Write-Step "Custom instructions let you personalize Copilot's behavior."
     Write-Info "Copilot reads instructions from files like copilot-instructions.md"
@@ -801,10 +803,10 @@ try {
     Test-Prerequisites
     Select-InstallMethod
     Install-CopilotCLI
-    Start-Authentication
     Install-VSCodeSetup
     Install-GitHubCLI
     Set-CustomInstructions
+    Start-Authentication
     Show-Summary
 }
 catch {
